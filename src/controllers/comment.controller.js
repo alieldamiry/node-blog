@@ -1,0 +1,30 @@
+import * as commentModel from "../models/comment.model.js";
+import { catchAsync } from "../utils/catchAsync.js";
+
+export const getByPostId = catchAsync(async (req, res) => {
+  const postId = req.query.post_id;
+  const comments = await commentModel.getByPostId(postId);
+  res.json({ stauts: "success", data: comments });
+});
+
+export const create = catchAsync(async (req, res) => {
+  const { content } = req.body;
+  const postId = req.query.post_id;
+  const userId = "b89d0212-d3a3-4c52-8aac-7ddde7760c47"; // from auth middleware later
+  const comment = await commentModel.create({
+    user_id: userId,
+    post_id: postId,
+    content,
+  });
+  res.status(201).json(comment);
+});
+
+export const update = catchAsync(async (req, res) => {
+  const comment = await commentModel.update(req.params.id, req.body);
+  res.json({ stauts: "success", data: comment });
+});
+
+export const deleteComment = catchAsync(async (req, res) => {
+  await commentModel.deleteComment(req.params.id);
+  res.status(204).json({ stauts: "success", data: null });
+});
