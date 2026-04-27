@@ -12,10 +12,4 @@ router
   .patch(postController.update)
   .delete(postController.deletePost);
 
-// comments
-// router
-//   .route("/:post_id/comments")
-//   .get(commentController.getByPostId)
-//   .post(commentController.create);
-
 export default router;

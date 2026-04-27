@@ -132,6 +132,7 @@ export const getTrending = async ({ page = 1, limit = 5 } = {}) => {
       SELECT COUNT(*)::int AS total
       FROM posts
       JOIN users ON posts.user_id = users.id
+      WHERE posts.created_at >= NOW() - INTERVAL '7 days'
       `,
       params.slice(0, -2),
     ),

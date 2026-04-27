@@ -5,19 +5,19 @@ export const getAll = catchAsync(async (req, res) => {
   const posts = await postModel.getAll({
     ...req.query,
   });
-  res.json({ stauts: "success", count: posts.length, data: posts });
+  res.json({ status: "success", count: posts.length, data: posts });
 });
 
 export const getTrending = catchAsync(async (req, res) => {
   const posts = await postModel.getTrending({
     ...req.query,
   });
-  res.json({ stauts: "success", count: posts.length, data: posts });
+  res.json({ status: "success", count: posts.length, data: posts });
 });
 
 export const getById = catchAsync(async (req, res) => {
   const posts = await postModel.getById(req.params.id);
-  res.json({ stauts: "success", data: posts });
+  res.json({ status: "success", data: posts });
 });
 
 export const create = catchAsync(async (req, res) => {
@@ -34,10 +34,10 @@ export const create = catchAsync(async (req, res) => {
 
 export const update = catchAsync(async (req, res) => {
   const post = await postModel.update(req.params.id, req.body);
-  res.json({ stauts: "success", data: post });
+  res.json({ status: "success", data: post });
 });
 
 export const deletePost = catchAsync(async (req, res) => {
   await postModel.deletePost(req.params.id);
-  res.status(204).json({ stauts: "success", data: null });
+  res.status(204).json({ status: "success", data: null });
 });
