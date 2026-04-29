@@ -5,7 +5,15 @@ export const getAll = catchAsync(async (req, res) => {
   const posts = await postModel.getAll({
     ...req.query,
   });
-  res.json({ status: "success", count: posts.length, data: posts });
+  res.json({ status: "success", ...posts });
+});
+
+export const getMe = catchAsync(async (req, res) => {
+  const posts = await postModel.getAll({
+    ...req.query,
+    user_id: req.user.id,
+  });
+  res.json({ status: "success", ...posts });
 });
 
 export const getTrending = catchAsync(async (req, res) => {
@@ -22,7 +30,7 @@ export const getById = catchAsync(async (req, res) => {
 
 export const create = catchAsync(async (req, res) => {
   const { title, content, isPublished } = req.body;
-  const userId = "b89d0212-d3a3-4c52-8aac-7ddde7760c47"; // from auth middleware later
+  const userId = req.user.id;
   const post = await postModel.create({
     userId,
     title,

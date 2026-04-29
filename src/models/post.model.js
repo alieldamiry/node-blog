@@ -40,7 +40,6 @@ export const getAll = async ({
   const sortField = ALLOWED_SORT_FIELDS[sortKey] ?? "posts.created_at";
   const sortOrder = sortBy.startsWith("-") ? "DESC" : "ASC";
   const orderBy = `ORDER BY ${sortField} ${sortOrder}`;
-  console.log({ orderBy });
 
   const offset = (page - 1) * limit;
   params.push(limit, offset);

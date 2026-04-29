@@ -23,8 +23,10 @@ export const errorHandler = (err, req, res, next) => {
   const message = error.isOperational ? error.message : "Internal Server Error";
 
   if (process.env.NODE_ENV === "development") {
-    return res.status(statusCode).json({ message, stack: err.stack });
+    return res
+      .status(statusCode)
+      .json({ status: "fail", message, stack: err.stack });
   }
 
-  res.status(statusCode).json({ message });
+  res.status(statusCode).json({ status: "fail", message });
 };

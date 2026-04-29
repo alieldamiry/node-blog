@@ -18,8 +18,26 @@ order by comments.created_at desc
   return result.rows;
 };
 
+export const getById = async (id) => {
+  const result = await pool.query(
+    `
+    SELECT comments.id, post_id, content,
+      json_build_object(
+        'id',         users.id,
+        'email',      users.email,
+        'first_name', users.first_name,
+        'last_name',  users.last_name
+      ) AS user_info
+    FROM comments
+    JOIN users ON users.id = comments.user_id
+    WHERE comments.id = $1
+    `,
+    [id],
+  );
+  return result.rows[0];
+};
+
 export const create = async ({ post_id, user_id, content }) => {
-  console.log({ post_id, user_id, content });
   const result = await pool.query(
     `
         insert into comments (user_id, post_id, content)

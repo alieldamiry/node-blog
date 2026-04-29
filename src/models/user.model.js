@@ -66,7 +66,13 @@ export const create = async (input) => {
         values($1, $2, $3, $4, $5)
         returning *
         `,
-    [input.email, input.firstName, input.lastName, input.role, input.password],
+    [
+      input.email,
+      input.first_name,
+      input.last_name,
+      input.role,
+      input.password,
+    ],
   );
   return result.rows.at(0);
 };

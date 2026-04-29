@@ -10,7 +10,7 @@ export const getByPostId = catchAsync(async (req, res) => {
 export const create = catchAsync(async (req, res) => {
   const { content } = req.body;
   const postId = req.query.post_id;
-  const userId = "b89d0212-d3a3-4c52-8aac-7ddde7760c47"; // from auth middleware later
+  const userId = req.user.id;
   const comment = await commentModel.create({
     user_id: userId,
     post_id: postId,

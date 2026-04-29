@@ -3,6 +3,7 @@ import cors from "cors";
 import usersRouter from "./routes/user.route.js";
 import postsRouter from "./routes/post.route.js";
 import commentRouter from "./routes/comment.route.js";
+import authRouter from "./routes/auth.route.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 import { AppError } from "./utils/appError.js";
 
@@ -15,6 +16,7 @@ app.use(express.json());
 app.use("/users", usersRouter);
 app.use("/posts", postsRouter);
 app.use("/comments", commentRouter);
+app.use("/auth", authRouter);
 
 app.use("/health", (req, res) => {
   res.status(200).send("OK");
