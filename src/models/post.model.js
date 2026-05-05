@@ -1,210 +1,203 @@
-import { pool } from "../config/db.js";
-
-const ALLOWED_SORT_FIELDS = {
-  created_at: "posts.created_at",
-  title: "posts.title",
-  total_likes: "total_likes",
-  updated_at: "posts.updated_at",
-  author: "author",
-};
+import { prisma } from "../lib/prisma.js";
 
 export const getAll = async ({
-  search,
+  // filters
   is_published,
   user_id,
+  id,
+  // search
+  search,
+  // sorting
+  sort_by = "created_at",
+  sort_order = "desc",
+  // pagination
   page = 1,
-  limit = 5,
-  sortBy = "-created_at",
+  limit = 10,
 } = {}) => {
-  const conditions = [];
-  const params = [];
+  const where = {
+    ...(is_published !== undefined && { is_published }),
+    ...(user_id && { user_id }),
+    ...(id && { id }),
+    ...(search && {
+      title: {
+        contains: search,
+        mode: "insensitive",
+      },
+    }),
+  };
 
-  if (search) {
-    params.push(`%${search}%`);
-    conditions.push(`posts.title ILIKE $${params.length}`);
-  }
+  const orderByMap = {
+    created_at: { created_at: sort_order },
+    updated_at: { updated_at: sort_order },
+    title: { title: sort_order },
+    likes: { likes: { _count: sort_order } },
+    author: { users: { first_name: sort_order } },
+  };
 
-  if (is_published !== undefined) {
-    params.push(is_published);
-    conditions.push(`posts.is_published = $${params.length}`);
-  }
+  const orderBy = orderByMap[sort_by] ?? { created_at: "desc" };
 
-  if (user_id) {
-    params.push(user_id);
-    conditions.push(`posts.user_id = $${params.length}`);
-  }
+  const skip = (page - 1) * limit;
 
-  const where = conditions.length ? `WHERE ${conditions.join(" AND ")}` : "";
-
-  const sortKey = sortBy.startsWith("-") ? sortBy.slice(1) : sortBy;
-  const sortField = ALLOWED_SORT_FIELDS[sortKey] ?? "posts.created_at";
-  const sortOrder = sortBy.startsWith("-") ? "DESC" : "ASC";
-  const orderBy = `ORDER BY ${sortField} ${sortOrder}`;
-
-  const offset = (page - 1) * limit;
-  params.push(limit, offset);
-
-  const [result, countResult] = await Promise.all([
-    pool.query(
-      `
-      SELECT
-        posts.id,
-        posts.title,
-        posts.content,
-        posts.is_published,
-        posts.created_at,
-        posts.updated_at,
-        CONCAT(users.first_name, ' ', users.last_name) AS author,
-        COALESCE(l.total_likes, 0) AS total_likes
-      FROM posts
-      JOIN users ON posts.user_id = users.id
-      LEFT JOIN (
-        SELECT post_id, COUNT(user_id)::int AS total_likes
-        FROM likes GROUP BY post_id
-      ) l ON l.post_id = posts.id
-      ${where}
-      ${orderBy}
-      LIMIT $${params.length - 1} OFFSET $${params.length}
-      `,
-      params,
-    ),
-    pool.query(
-      `
-      SELECT COUNT(*)::int AS total
-      FROM posts
-      JOIN users ON posts.user_id = users.id
-      ${where}
-      `,
-      params.slice(0, -2),
-    ),
+  // Run both queries in parallel
+  const [posts, total] = await Promise.all([
+    prisma.posts.findMany({
+      where,
+      orderBy,
+      take: limit,
+      skip,
+      select: {
+        id: true,
+        title: true,
+        content: true,
+        is_published: true,
+        created_at: true,
+        updated_at: true,
+        users: {
+          select: {
+            first_name: true,
+            last_name: true,
+          },
+        },
+        _count: {
+          select: {
+            likes: true,
+          },
+        },
+      },
+    }),
+    prisma.posts.count({ where }),
   ]);
 
+  const formattedPosts = posts.map(({ users, _count, ...post }) => ({
+    ...post,
+    author: `${users.first_name} ${users.last_name}`,
+    total_likes: _count.likes,
+  }));
+
   return {
-    data: result.rows,
+    data: formattedPosts,
     meta: {
-      total: countResult.rows[0].total,
-      page: +page,
+      total,
+      page,
       limit,
-      totalPages: Math.ceil(countResult.rows[0].total / limit),
+      total_pages: Math.ceil(total / limit),
     },
   };
 };
 
 export const getTrending = async ({ page = 1, limit = 5 } = {}) => {
-  const conditions = [];
-  const params = [];
+  const where = {
+    created_at: {
+      gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // last 7 days
+    },
+  };
 
-  const offset = (page - 1) * limit;
-  params.push(limit, offset);
+  const orderBy = {
+    likes: {
+      _count: "desc",
+    },
+  };
 
-  const [result, countResult] = await Promise.all([
-    pool.query(
-      `
-      SELECT
-        posts.id,
-        posts.title,
-        posts.content,
-        posts.is_published,
-        posts.created_at,
-        posts.updated_at,
-        CONCAT(users.first_name, ' ', users.last_name) AS author,
-        COALESCE(l.total_likes, 0) AS total_likes,
-        COALESCE(c.total_comments, 0) AS total_comments
-      FROM posts
-      JOIN users ON posts.user_id = users.id
-      LEFT JOIN (
-        SELECT post_id, COUNT(user_id)::int AS total_likes
-        FROM likes GROUP BY post_id
-      ) l ON l.post_id = posts.id
-        LEFT JOIN (
-        SELECT post_id, COUNT(user_id)::int AS total_comments
-        FROM comments GROUP BY post_id
-      ) c ON c.post_id = posts.id
-       WHERE posts.created_at >= NOW() - INTERVAL '7 days'
-       ORDER BY total_likes DESC
-       LIMIT $${params.length - 1} OFFSET $${params.length}
-      `,
-      params,
-    ),
-    pool.query(
-      `
-      SELECT COUNT(*)::int AS total
-      FROM posts
-      JOIN users ON posts.user_id = users.id
-      WHERE posts.created_at >= NOW() - INTERVAL '7 days'
-      `,
-      params.slice(0, -2),
-    ),
+  const skip = (page - 1) * limit;
+
+  const [posts, total] = await Promise.all([
+    prisma.posts.findMany({
+      where,
+      orderBy,
+      take: limit,
+      skip,
+      select: {
+        id: true,
+        title: true,
+        content: true,
+        is_published: true,
+        created_at: true,
+        updated_at: true,
+        users: {
+          select: {
+            first_name: true,
+            last_name: true,
+          },
+        },
+        _count: {
+          select: {
+            likes: true,
+          },
+        },
+      },
+    }),
+    prisma.posts.count({ where }),
   ]);
 
+  const formattedPosts = posts.map(({ users, _count, ...post }) => ({
+    ...post,
+    author: `${users.first_name} ${users.last_name}`,
+    total_likes: _count.likes,
+  }));
+
   return {
-    data: result.rows,
+    data: formattedPosts,
     meta: {
-      total: countResult.rows[0].total,
-      page: +page,
+      total,
+      page,
       limit,
-      totalPages: Math.ceil(countResult.rows[0].total / limit),
+      total_pages: Math.ceil(total / limit),
     },
   };
 };
 
 export const getById = async (id) => {
-  const result = await pool.query(
-    `
-        SELECT
-            posts.id,
-            posts.title, 
-            posts.content,
-            posts.is_published,
-            posts.created_at,
-            posts.updated_at,
-            json_build_object(
-                'id',         users.id,
-                'email',      users.email,
-                'first_name',  users.first_name,
-                'last_name',   users.last_name,
-                'role',       users.role,
-                'is_verified', users.is_verified,
-                'created_at',  users.created_at
-            ) AS author_info
-        FROM posts
-        JOIN users ON posts.user_id = users.id
-        WHERE posts.id = $1
-    `,
-    [id],
-  );
-  return result.rows[0];
+  const post = await prisma.posts.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      title: true,
+      content: true,
+      is_published: true,
+      created_at: true,
+      updated_at: true,
+      users: {
+        select: {
+          id: true,
+          email: true,
+          first_name: true,
+          last_name: true,
+          role: true,
+          is_verified: true,
+          created_at: true,
+        },
+      },
+    },
+  });
+  return post;
 };
 
-export const create = async ({ userId, title, content, isPublished }) => {
-  const result = await pool.query(
-    `
-        insert into posts (user_id, title, content, is_published)
-        values($1, $2, $3, $4)
-        returning *
-        `,
-    [userId, title, content, isPublished],
-  );
-  return result.rows.at(0);
+export const create = async ({ user_id, title, content, is_published }) => {
+  const post = await prisma.posts.create({
+    data: {
+      user_id,
+      title,
+      content,
+      is_published,
+    },
+  });
+  return post;
 };
 
 export const update = async (id, { title, content, is_published }) => {
-  const result = await pool.query(
-    `
-        UPDATE posts
-        SET 
-            title        = COALESCE($1, title),
-            content      = COALESCE($2, content),
-            is_published = COALESCE($3, is_published)
-        WHERE id = $4
-        RETURNING *
-    `,
-    [title, content, is_published, id],
-  );
-
-  return result.rows[0];
+  const post = await prisma.posts.update({
+    where: { id },
+    data: {
+      title,
+      content,
+      is_published,
+    },
+  });
+  return post;
 };
 
 export const deletePost = async (id) => {
-  await pool.query(`delete from posts where id=$1`, [id]);
+  await prisma.posts.delete({
+    where: { id },
+  });
 };

@@ -5,7 +5,7 @@ export const getAll = catchAsync(async (req, res) => {
   const posts = await postModel.getAll({
     ...req.query,
   });
-  res.json({ status: "success", ...posts });
+  res.json({ status: "success", posts });
 });
 
 export const getMe = catchAsync(async (req, res) => {
@@ -29,13 +29,13 @@ export const getById = catchAsync(async (req, res) => {
 });
 
 export const create = catchAsync(async (req, res) => {
-  const { title, content, isPublished } = req.body;
-  const userId = req.user.id;
+  const { title, content, is_published } = req.body;
+  const user_id = req.user.id;
   const post = await postModel.create({
-    userId,
+    user_id,
     title,
     content,
-    isPublished,
+    is_published,
   });
   res.status(201).json(post);
 });

@@ -1,10 +1,10 @@
 import "dotenv/config";
-import { initDb } from "./config/db.js";
+import { testDb } from "./config/db.js";
 import { app } from "./app.js";
 
 const PORT = process.env.PORT;
 
-initDb()
+testDb()
   .then(() => {
     app.listen(PORT, () =>
       console.log(`Server running on http://localhost:${PORT}`),

@@ -1,27 +1,11 @@
-import pg from "pg";
 import "dotenv/config";
+import { prisma } from "../lib/prisma.js";
 
-const { Pool } = pg;
-
-const dbConfig = {
-  host: process.env.DB_HOST,
-  port: Number(process.env.DB_PORT),
-  database: process.env.DB_NAME,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-};
-
-export const pool = new Pool(dbConfig);
-
-export async function initDb() {
+export const testDb = async () => {
   try {
-    // Just test connection to the actual database
-    const client = await pool.connect();
-
-    await client.query('SELECT 1'); // simple health check
-
-    client.release();
+    await prisma.$connect();
+    console.log("Database connection successful");
   } catch (err) {
     throw new Error(`Database connection failed: ${err.message}`);
   }
-}
+};
