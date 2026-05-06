@@ -1,6 +1,6 @@
 import { pool } from "../config/db.js";
 
-const ALLOWED_SORT_FIELDS = {
+export const ALLOWED_SORT_FIELDS = {
   created_at: "posts.created_at",
   title: "posts.title",
   total_likes: "total_likes",
@@ -9,12 +9,13 @@ const ALLOWED_SORT_FIELDS = {
 };
 
 export const getAll = async ({
+  id,
   search,
   is_published,
   user_id,
   page = 1,
   limit = 5,
-  sortBy = "-created_at",
+  sort_by = "-created_at",
 } = {}) => {
   const conditions = [];
   const params = [];
@@ -33,13 +34,18 @@ export const getAll = async ({
     params.push(user_id);
     conditions.push(`posts.user_id = $${params.length}`);
   }
+  if (id) {
+    params.push(id);
+    conditions.push(`posts.id = $${params.length}`);
+  }
 
   const where = conditions.length ? `WHERE ${conditions.join(" AND ")}` : "";
 
-  const sortKey = sortBy.startsWith("-") ? sortBy.slice(1) : sortBy;
+  const sortKey = sort_by.startsWith("-") ? sort_by.slice(1) : sort_by;
   const sortField = ALLOWED_SORT_FIELDS[sortKey] ?? "posts.created_at";
-  const sortOrder = sortBy.startsWith("-") ? "DESC" : "ASC";
+  const sortOrder = sort_by.startsWith("-") ? "DESC" : "ASC";
   const orderBy = `ORDER BY ${sortField} ${sortOrder}`;
+  console.log({ sort_by, sortKey, sortField, sortOrder });
 
   const offset = (page - 1) * limit;
   params.push(limit, offset);
@@ -176,14 +182,14 @@ export const getById = async (id) => {
   return result.rows[0];
 };
 
-export const create = async ({ userId, title, content, isPublished }) => {
+export const create = async ({ userId, title, content, is_published }) => {
   const result = await pool.query(
     `
         insert into posts (user_id, title, content, is_published)
         values($1, $2, $3, $4)
         returning *
         `,
-    [userId, title, content, isPublished],
+    [userId, title, content, is_published],
   );
   return result.rows.at(0);
 };

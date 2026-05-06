@@ -1,6 +1,7 @@
 import * as userModel from "../models/user.model.js";
 import { AppError } from "../utils/appError.js";
 import { catchAsync } from "../utils/catchAsync.js";
+import bcrypt from "bcrypt";
 
 export const getAll = catchAsync(async (req, res, next) => {
   const users = await userModel.getAll();
@@ -13,19 +14,13 @@ export const getUsersActivity = catchAsync(async (req, res, next) => {
 });
 
 export const getById = catchAsync(async (req, res, next) => {
-  const { id } = req.params;
-
-  const uuidRegex =
-    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
-  if (!uuidRegex.test(id)) {
-    return next(new AppError(`Invalid UUID: "${id}"`, 400));
-  }
   const user = (await userModel.getById(req.params.id)) || {};
   res.json({ status: "success", data: user });
 });
 
 export const create = catchAsync(async (req, res) => {
+  const hashedPassword = await bcrypt.hash(req.body.password, 12);
+  req.body.password = hashedPassword;
   const user = await userModel.create(req.body);
   res.status(201).json({ status: "success", data: user });
 });

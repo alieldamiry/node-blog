@@ -1,13 +1,24 @@
 import { Router } from "express";
+const router = Router();
 import * as postController from "../controllers/post.controller.js";
 import * as authController from "../controllers/auth.controller.js";
 import * as postModel from "../models/post.model.js";
+import { validate } from "../middleware/validate.js";
+import {
+  createPostSchema,
+  getAllPostsSchema,
+  getPostByIdSchema,
+  updatePostSchema,
+} from "../schemas/post.schema.js";
 
-const router = Router();
 router
   .route("/")
-  .get(postController.getAll)
-  .post(authController.protect, postController.create);
+  .get(validate(getAllPostsSchema), postController.getAll)
+  .post(
+    authController.protect,
+    validate(createPostSchema),
+    postController.create,
+  );
 
 router.get(
   "/me",
@@ -19,7 +30,7 @@ router.get(
 router.route("/trending").get(postController.getTrending);
 router
   .route("/:id")
-  .get(postController.getById)
+  .get(validate(getPostByIdSchema), postController.getById)
   .patch(
     authController.protect,
     authController.restrictToOwnerOrRoles(
@@ -27,6 +38,7 @@ router
       ["admin"],
       "author_info.id",
     ),
+    validate(updatePostSchema),
     postController.update,
   )
   .delete(

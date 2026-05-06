@@ -1,7 +1,7 @@
 import { AppError } from "../utils/appError.js";
+import { ZodError } from "zod";
 
 const handleDBError = (err) => {
-  console.log(err);
   if (err.code === "23505")
     return new AppError(`This value already exists. ${err.constraint}`, 409);
   if (err.code === "23503")
@@ -12,8 +12,29 @@ const handleDBError = (err) => {
   return new AppError("Database error.", 500);
 };
 
+const handleZodError = (err) => {
+  const error = new AppError("Validation failed", 422);
+  error.errors = err.issues.map((issue) => ({
+    field: issue.path.slice(1).join("."),
+    message: issue.message,
+  }));
+  error.isOperational = true;
+  return error;
+};
+
 export const errorHandler = (err, req, res, next) => {
   let error = { ...err, message: err.message };
+
+  if (err.name === "ZodError") {
+    error = handleZodError(err);
+    // error.statusCode = 422;
+    // error.message = "Validation failed";
+    // error.errors = err.issues.map((issue) => ({
+    //   field: issue.path.slice(1).join("."),
+    //   message: issue.message,
+    // }));
+    // error.isOperational = true;
+  }
 
   if (err.code && err.code.match(/^[0-9A-Z]{5}$/)) {
     error = handleDBError(err);
@@ -23,9 +44,14 @@ export const errorHandler = (err, req, res, next) => {
   const message = error.isOperational ? error.message : "Internal Server Error";
 
   if (process.env.NODE_ENV === "development") {
-    return res
-      .status(statusCode)
-      .json({ status: "fail", message, stack: err.stack });
+    const response = { status: "fail", message };
+    if (err.name === "ZodError")
+      response.errors = err.issues.map((issue) => ({
+        path: issue.path.join("."),
+        field: issue.path.at(-1),
+        message: issue.message,
+      }));
+    return res.status(statusCode).json({ ...response, stack: err.stack });
   }
 
   res.status(statusCode).json({ status: "fail", message });

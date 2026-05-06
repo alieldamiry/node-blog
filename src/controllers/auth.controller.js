@@ -93,7 +93,7 @@ export const restrictTo = (...roles) => {
 export const restrictToOwnerOrRoles = (
   Model,
   roles = [],
-  ownerField = "author_info.id",
+  ownerField = "id",
 ) => {
   return async (req, _res, next) => {
     const resource = await Model.getById(req.params.id);

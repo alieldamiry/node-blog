@@ -29,13 +29,13 @@ export const getById = catchAsync(async (req, res) => {
 });
 
 export const create = catchAsync(async (req, res) => {
-  const { title, content, isPublished } = req.body;
+  const { title, content, is_published } = req.body;
   const userId = req.user.id;
   const post = await postModel.create({
     userId,
     title,
     content,
-    isPublished,
+    is_published,
   });
   res.status(201).json(post);
 });

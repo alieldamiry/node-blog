@@ -8,12 +8,11 @@ export const getByPostId = catchAsync(async (req, res) => {
 });
 
 export const create = catchAsync(async (req, res) => {
-  const { content } = req.body;
-  const postId = req.query.post_id;
+  const { content, post_id } = req.body;
   const userId = req.user.id;
   const comment = await commentModel.create({
     user_id: userId,
-    post_id: postId,
+    post_id,
     content,
   });
   res.status(201).json(comment);

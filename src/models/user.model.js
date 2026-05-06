@@ -74,24 +74,24 @@ export const create = async (input) => {
       input.password,
     ],
   );
+  delete result.rows[0].password;
   return result.rows.at(0);
 };
 
-export const update = async (id, { first_name, last_name, password }) => {
+export const update = async (id, { first_name, last_name }) => {
   const result = await pool.query(
     `
         UPDATE users
         SET 
             first_name        = COALESCE($1, first_name),
-            last_name      = COALESCE($2, last_name),
-            password = COALESCE($3, password)
-        WHERE id = $4
+            last_name      = COALESCE($2, last_name)
+        WHERE id = $3
         RETURNING *
     `,
-    [first_name, last_name, password, id],
+    [first_name, last_name, id],
   );
-
-  return result.rows[0];
+  delete result.rows[0].password;
+  return result.rows.at(0);
 };
 
 export const deleteUser = async (id) => {
