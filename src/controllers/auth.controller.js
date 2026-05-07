@@ -105,8 +105,6 @@ export const restrictToOwnerOrRoles = (
       .split(".")
       .reduce((obj, key) => obj?.[key], resource);
 
-    console.log("Owner ID:", ownerId, "User ID:", req.user.id); // Debugging line
-
     if (ownerId !== req.user.id) {
       return next(new AppError("You don't have permission", 403));
     }

@@ -1,5 +1,6 @@
 import { AppError } from "../utils/appError.js";
 import { ZodError } from "zod";
+import { logger } from "../utils/logger.js";
 
 const handleDBError = (err) => {
   if (err.code === "23505")
@@ -51,6 +52,7 @@ export const errorHandler = (err, req, res, next) => {
         field: issue.path.at(-1),
         message: issue.message,
       }));
+    logger.error({ err }, "Error occurred");
     return res.status(statusCode).json({ ...response, stack: err.stack });
   }
 

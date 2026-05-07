@@ -6,12 +6,16 @@ import commentRouter from "./routes/comment.route.js";
 import authRouter from "./routes/auth.route.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 import { AppError } from "./utils/appError.js";
+import { pinoHttp } from "pino-http";
+import { logger } from "./utils/logger.js";
 
 export const app = express();
 
 app.use(cors());
 
 app.use(express.json());
+
+app.use(pinoHttp({ logger }));
 
 app.use("/users", usersRouter);
 app.use("/posts", postsRouter);

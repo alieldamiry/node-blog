@@ -3,6 +3,7 @@ import { ALLOWED_SORT_FIELDS } from "../models/post.model.js";
 
 export const getAllPostsSchema = z.object({
   query: z.object({
+    id: z.string().uuid().optional(),
     page: z.string().regex(/^\d+$/).transform(Number).default("1"),
     limit: z.string().regex(/^\d+$/).transform(Number).default("5"),
     sort_by: z
