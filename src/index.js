@@ -1,6 +1,6 @@
 import "dotenv/config";
 import { initDb } from "./config/db.js";
-import { app } from "./app.js";
+import app from "./app.js";
 import { logger } from "./utils/logger.js";
 
 const PORT = process.env.PORT;

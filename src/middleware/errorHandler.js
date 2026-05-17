@@ -28,13 +28,6 @@ export const errorHandler = (err, req, res, next) => {
 
   if (err.name === "ZodError") {
     error = handleZodError(err);
-    // error.statusCode = 422;
-    // error.message = "Validation failed";
-    // error.errors = err.issues.map((issue) => ({
-    //   field: issue.path.slice(1).join("."),
-    //   message: issue.message,
-    // }));
-    // error.isOperational = true;
   }
 
   if (err.code && err.code.match(/^[0-9A-Z]{5}$/)) {
@@ -44,17 +37,16 @@ export const errorHandler = (err, req, res, next) => {
   const statusCode = error.statusCode || 500;
   const message = error.isOperational ? error.message : "Internal Server Error";
 
+  const response = { status: "fail", message };
+  if (error.errors) response.errors = error.errors;
+
+  if (process.env.NODE_ENV !== "test") {
+    logger.error({ err }, "logging error");
+  }
+
   if (process.env.NODE_ENV === "development") {
-    const response = { status: "fail", message };
-    if (err.name === "ZodError")
-      response.errors = err.issues.map((issue) => ({
-        path: issue.path.join("."),
-        field: issue.path.at(-1),
-        message: issue.message,
-      }));
-    logger.error({ err }, "Error occurred");
     return res.status(statusCode).json({ ...response, stack: err.stack });
   }
 
-  res.status(statusCode).json({ status: "fail", message });
+  res.status(statusCode).json(response);
 };

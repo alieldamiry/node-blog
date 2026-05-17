@@ -9,14 +9,15 @@ import { AppError } from "./utils/appError.js";
 import { pinoHttp } from "pino-http";
 import { logger } from "./utils/logger.js";
 
-export const app = express();
+const app = express();
 
 app.use(cors());
 
 app.use(express.json());
 
-app.use(pinoHttp({ logger }));
-
+if (process.env.NODE_ENV !== "test") {
+  app.use(pinoHttp({ logger }));
+}
 app.use("/users", usersRouter);
 app.use("/posts", postsRouter);
 app.use("/comments", commentRouter);
@@ -36,3 +37,5 @@ app.use((req, res, next) => {
 });
 
 app.use(errorHandler);
+
+export default app;

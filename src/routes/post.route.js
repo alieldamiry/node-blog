@@ -23,7 +23,7 @@ router
 router.get(
   "/me",
   authController.protect,
-  authController.restrictToOwnerOrRoles("admin"),
+  // authController.restrictToOwnerOrRoles(postModel, ["admin"], "author_info.id"),
   postController.getMe,
 );
 
