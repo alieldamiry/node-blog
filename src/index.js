@@ -8,7 +8,7 @@ const PORT = process.env.PORT;
 initDb()
   .then(() => {
     app.listen(PORT, () => {
-      logger.info(`Server running on http://localhost:${PORT}`);
+      logger.info(`✅ Server running on http://localhost:${PORT}`);
     });
   })
   .catch((err) => {

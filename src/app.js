@@ -8,6 +8,7 @@ import { errorHandler } from "./middleware/errorHandler.js";
 import { AppError } from "./utils/appError.js";
 import { pinoHttp } from "pino-http";
 import { logger } from "./utils/logger.js";
+import { authLimiter, globalLimiter } from "./config/rateLimiter.js";
 
 const app = express();
 
@@ -18,18 +19,36 @@ app.use(express.json());
 if (process.env.NODE_ENV !== "test") {
   app.use(pinoHttp({ logger }));
 }
+
+app.use(globalLimiter);
+
 app.use("/users", usersRouter);
 app.use("/posts", postsRouter);
 app.use("/comments", commentRouter);
-app.use("/auth", authRouter);
+app.use("/auth", authLimiter, authRouter);
 
 app.use("/health", (req, res) => {
   res.status(200).send("OK");
 });
 
+// app.get("/session-test", (req, res) => {
+//   req.session.visits = (req.session.visits || 0) + 1;
+//   res.json({ visits: req.session.visits });
+// });
+
 // app.use((err, req, res, next) => {
 //   console.error(err);
 //   res.status(500).json({ error: "Internal server error" });
+// });
+
+// app.use("/redis-test", async (req, res, next) => {
+//   try {
+//     await redis.set("hello", "from redis");
+//     const value = await redis.get("hello");
+//     res.json({ value });
+//   } catch (err) {
+//     next(err);
+//   }
 // });
 
 app.use((req, res, next) => {
