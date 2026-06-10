@@ -1,5 +1,4 @@
 import cloudinary from "../config/cloudinary.js";
-import { v2 } from "cloudinary";
 
 export const uploadToCloudinary = (buffer, mimetype) => {
   return new Promise((resolve, reject) => {
@@ -23,5 +22,5 @@ export const uploadToCloudinary = (buffer, mimetype) => {
 };
 
 export const deleteFromCloudinary = async (publicId) => {
-  await v2.uploader.destroy(publicId);
+  await cloudinary.uploader.destroy(publicId);
 };

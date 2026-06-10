@@ -15,7 +15,7 @@ export const create = catchAsync(async (req, res) => {
     post_id,
     content,
   });
-  res.status(201).json(comment);
+  res.status(201).json({ status: "success", data: comment });
 });
 
 export const update = catchAsync(async (req, res) => {

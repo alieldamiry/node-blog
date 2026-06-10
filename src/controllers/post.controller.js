@@ -1,12 +1,13 @@
 import * as postModel from "../models/post.model.js";
 import { catchAsync } from "../utils/catchAsync.js";
 import redis from "../config/redis.js";
+import { AppError } from "../utils/appError.js";
 
 export const getAll = catchAsync(async (req, res) => {
   const posts = await postModel.getAll({
     ...req.query,
   });
-  res.json({ status: "success", ...posts });
+  res.json({ status: "success", data: posts.data, meta: posts.meta });
 });
 
 export const getMe = catchAsync(async (req, res) => {
@@ -14,14 +15,14 @@ export const getMe = catchAsync(async (req, res) => {
     ...req.query,
     user_id: req.user.id,
   });
-  res.json({ status: "success", ...posts });
+  res.json({ status: "success", data: posts.data, meta: posts.meta });
 });
 
 export const getTrending = catchAsync(async (req, res) => {
   const posts = await postModel.getTrending({
     ...req.query,
   });
-  res.json({ status: "success", count: posts.length, data: posts });
+  res.json({ status: "success", data: posts.data, meta: posts.meta });
 });
 
 // export const getById = catchAsync(async (req, res) => {
@@ -29,7 +30,7 @@ export const getTrending = catchAsync(async (req, res) => {
 //   res.json({ status: "success", data: posts });
 // });
 
-export const getById = catchAsync(async (req, res) => {
+export const getById = catchAsync(async (req, res, next) => {
   const cacheKey = `post:${req.params.id}`;
   const cachedData = await redis.get(cacheKey);
   if (!cachedData) {
@@ -50,7 +51,7 @@ export const create = catchAsync(async (req, res) => {
     content,
     is_published,
   });
-  res.status(201).json(post);
+  res.status(201).json({ status: "success", data: post });
 });
 
 export const update = catchAsync(async (req, res) => {
