@@ -12,7 +12,7 @@ export const getAll = async () => {
 export const getById = async (id) => {
   const result = await pool.query(
     `
-            select id, email, first_name, last_name, role, is_verified, created_at, updated_at
+            select id, email, first_name, last_name, role, avatar_url, avatar_public_id, is_verified, created_at, updated_at
             from users
             where id=$1
             `,
@@ -59,6 +59,7 @@ left join (
             `);
   return result.rows;
 };
+
 export const create = async (input) => {
   const result = await pool.query(
     `
@@ -96,4 +97,11 @@ export const update = async (id, { first_name, last_name }) => {
 
 export const deleteUser = async (id) => {
   await pool.query(`delete from users where id=$1`, [id]);
+};
+
+export const updateAvatarUrl = async (userId, url, publicId) => {
+  await pool.query(
+    "UPDATE users SET avatar_url = $1, avatar_public_id = $2 WHERE id = $3",
+    [url, publicId, userId],
+  );
 };

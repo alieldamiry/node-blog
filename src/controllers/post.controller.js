@@ -32,13 +32,11 @@ export const getTrending = catchAsync(async (req, res) => {
 export const getById = catchAsync(async (req, res) => {
   const cacheKey = `post:${req.params.id}`;
   const cachedData = await redis.get(cacheKey);
-  console.log({ cachedData });
   if (!cachedData) {
     const post = await postModel.getById(req.params.id);
     await redis.set(cacheKey, JSON.stringify(post), "EX", 60);
     res.json({ status: "success", data: post });
   } else {
-    console.log({ cachedData });
     res.json({ status: "success", data: JSON.parse(cachedData) });
   }
 });

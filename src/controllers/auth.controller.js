@@ -66,6 +66,17 @@ export const login = catchAsync(async (req, res, next) => {
   });
 });
 
+export const getMe = catchAsync(async (req, res, next) => {
+  const { id } = req.user;
+  
+  const userData = await userModel.getById(id);
+
+  res.status(200).json({
+    status: "success",
+    data: userData,
+  });
+});
+
 export const protect = catchAsync(async (req, res, next) => {
   const authHeader = req.headers["authorization"];
   const token = authHeader && authHeader.split(" ")[1];

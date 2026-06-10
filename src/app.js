@@ -20,12 +20,12 @@ if (process.env.NODE_ENV !== "test") {
   app.use(pinoHttp({ logger }));
 }
 
-app.use(globalLimiter);
+// app.use(globalLimiter);
 
 app.use("/users", usersRouter);
 app.use("/posts", postsRouter);
 app.use("/comments", commentRouter);
-app.use("/auth", authLimiter, authRouter);
+app.use("/auth", /*authLimiter,*/ authRouter);
 
 app.use("/health", (req, res) => {
   res.status(200).send("OK");
