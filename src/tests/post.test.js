@@ -12,18 +12,18 @@ beforeEach(async () => {
   await truncateAll();
 });
 
-describe("GET /posts", () => {
+describe("GET /api/v1/posts", () => {
   it("returns posts with success status", async () => {
-    const res = await request(app).get("/posts");
+    const res = await request(app).get("/api/v1/posts");
     expect(res.status).toBe(200);
     expect(res.body.status).toBe("success");
     expect(Array.isArray(res.body.data)).toBe(true);
   });
 });
 
-describe("POST /posts", () => {
+describe("POST /api/v1/posts", () => {
   it("requires authentication", async () => {
-    const res = await request(app).post("/posts").send({
+    const res = await request(app).post("/api/v1/posts").send({
       title: "Test Post",
       content: "This is a test post.",
     });
@@ -40,7 +40,7 @@ describe("POST /posts", () => {
       role: "user",
     });
 
-    const loginRes = await request(app).post("/auth/login").send({
+    const loginRes = await request(app).post("/api/v1/auth/login").send({
       email: "test@example.com",
       password: "1234",
     });
@@ -48,7 +48,7 @@ describe("POST /posts", () => {
 
     // Now create a post
     const res = await request(app)
-      .post("/posts")
+      .post("/api/v1/posts")
       .set("Authorization", `Bearer ${token}`)
       .send({
         title: "Test Post",
@@ -57,16 +57,16 @@ describe("POST /posts", () => {
       });
 
     expect(res.status).toBe(201);
-    expect(res.body).toHaveProperty("id");
-    expect(res.body).toHaveProperty("title", "Test Post");
-    expect(res.body).toHaveProperty("content", "This is a test post.");
-    expect(res.body).toHaveProperty("is_published", true);
+    expect(res.body.data).toHaveProperty("id");
+    expect(res.body.data).toHaveProperty("title", "Test Post");
+    expect(res.body.data).toHaveProperty("content", "This is a test post.");
+    expect(res.body.data).toHaveProperty("is_published", true);
   });
 });
 
-describe("GET /posts/me", () => {
+describe("GET /api/v1/posts/me", () => {
   it("requires authentication", async () => {
-    const res = await request(app).get("/posts/me");
+    const res = await request(app).get("/api/v1/posts/me");
     expect(res.status).toBe(401);
   });
 
@@ -74,12 +74,12 @@ describe("GET /posts/me", () => {
     const token = await createAdminAndGetToken();
 
     await request(app)
-      .post("/posts")
+      .post("/api/v1/posts")
       .set("Authorization", `Bearer ${token}`)
       .send({ title: "My Post", content: "Hello world", is_published: true });
 
     const res = await request(app)
-      .get("/posts/me")
+      .get("/api/v1/posts/me")
       .set("Authorization", `Bearer ${token}`);
 
     expect(res.status).toBe(200);

@@ -15,9 +15,9 @@ const userData = {
   passwordConfirm: "1234",
 };
 
-describe("POST /auth/register", () => {
+describe("POST /api/v1/auth/register", () => {
   it("registers a new user with valid data", async () => {
-    const res = await request(app).post("/auth/register").send(userData);
+    const res = await request(app).post("/api/v1/auth/register").send(userData);
     const { data } = res.body;
     expect(res.statusCode).toBe(201);
     expect(data).toHaveProperty("role", "user");
@@ -27,7 +27,7 @@ describe("POST /auth/register", () => {
   });
 
   it("rejects registration with missing fields", async () => {
-    const res = await request(app).post("/auth/register").send({
+    const res = await request(app).post("/api/v1/auth/register").send({
       first_name: "Test",
       last_name: "User",
     });
@@ -39,28 +39,28 @@ describe("POST /auth/register", () => {
   });
 
   it("rejects duplicate email", async () => {
-    await request(app).post("/auth/register").send(userData);
+    await request(app).post("/api/v1/auth/register").send(userData);
 
-    const res = await request(app).post("/auth/register").send(userData);
+    const res = await request(app).post("/api/v1/auth/register").send(userData);
 
     expect(res.status).toBe(409);
   });
 });
 
-describe("POST /auth/login", () => {
+describe("POST /api/v1/auth/login", () => {
   it("returns a token with valid credentials", async () => {
-    await request(app).post("/auth/register").send(userData);
+    await request(app).post("/api/v1/auth/register").send(userData);
     const res = await request(app)
-      .post("/auth/login")
+      .post("/api/v1/auth/login")
       .send({ email: userData.email, password: userData.password });
     expect(res.status).toBe(200);
     expect(res.body).toHaveProperty("data.token");
   });
 
   it("rejects wrong password", async () => {
-    await request(app).post("/auth/register").send(userData);
+    await request(app).post("/api/v1/auth/register").send(userData);
     const res = await request(app)
-      .post("/auth/login")
+      .post("/api/v1/auth/login")
       .send({ email: userData.email, password: "wrongpassword" });
     expect(res.status).toBe(401);
   });

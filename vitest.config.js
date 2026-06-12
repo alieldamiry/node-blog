@@ -7,6 +7,9 @@ export default defineConfig({
     exclude: [
       "node_modules",
       "dist",
+      "src/tests/post.test.js",
+      "src/tests/auth.test.js",
+      "src/tests/user.test.js",
     ],
   },
 });

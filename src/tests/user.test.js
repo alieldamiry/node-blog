@@ -2,27 +2,31 @@ import { describe, it, expect, beforeEach } from "vitest";
 import request from "supertest";
 import app from "../app.js";
 import { truncateAll } from "./setup.js";
-import { createAdminAndGetToken, getUserIdByEmail, userData } from "./tests-utils.js";
+import {
+  createAdminAndGetToken,
+  getUserIdByEmail,
+  userData,
+} from "./tests-utils.js";
 
 beforeEach(async () => {
   await truncateAll();
 });
 
-describe("GET /users", () => {
+describe("GET /api/v1/users", () => {
   it("requires authentication", async () => {
-    const res = await request(app).get("/users");
+    const res = await request(app).get("/api/v1/users");
     expect(res.status).toBe(401);
   });
 
   it("requires admin role", async () => {
-    await request(app).post("/auth/register").send(userData);
+    await request(app).post("/api/v1/auth/register").send(userData);
     const loginRes = await request(app)
-      .post("/auth/login")
+      .post("/api/v1/auth/login")
       .send({ email: userData.email, password: userData.password });
     const token = loginRes.body.data.token;
 
     const res = await request(app)
-      .get("/users")
+      .get("/api/v1/users")
       .set("Authorization", `Bearer ${token}`);
 
     expect(res.status).toBe(403);
@@ -32,7 +36,7 @@ describe("GET /users", () => {
     const token = await createAdminAndGetToken();
 
     const res = await request(app)
-      .get("/users")
+      .get("/api/v1/users")
       .set("Authorization", `Bearer ${token}`);
 
     expect(res.status).toBe(200);
@@ -43,10 +47,10 @@ describe("GET /users", () => {
   it("returns users with correct fields", async () => {
     const adminToken = await createAdminAndGetToken();
 
-    await request(app).post("/auth/register").send(userData);
+    await request(app).post("/api/v1/auth/register").send(userData);
 
     const res = await request(app)
-      .get("/users")
+      .get("/api/v1/users")
       .set("Authorization", `Bearer ${adminToken}`);
 
     expect(res.status).toBe(200);
@@ -73,11 +77,11 @@ describe("GET /users", () => {
     const user1 = { ...userData, email: "user1@example.com" };
     const user2 = { ...userData, email: "user2@example.com" };
 
-    await request(app).post("/auth/register").send(user1);
-    await request(app).post("/auth/register").send(user2);
+    await request(app).post("/api/v1/auth/register").send(user1);
+    await request(app).post("/api/v1/auth/register").send(user2);
 
     const res = await request(app)
-      .get("/users")
+      .get("/api/v1/users")
       .set("Authorization", `Bearer ${adminToken}`);
 
     expect(res.status).toBe(200);
@@ -91,9 +95,9 @@ describe("GET /users", () => {
   });
 });
 
-describe("GET /users/activity", () => {
+describe("GET /api/v1/users/activity", () => {
   it("requires authentication", async () => {
-    const res = await request(app).get("/users/1");
+    const res = await request(app).get("/api/v1/users/1");
     expect(res.status).toBe(401);
   });
 
@@ -101,10 +105,10 @@ describe("GET /users/activity", () => {
     const adminToken = await createAdminAndGetToken();
 
     // const user = { ...userData, email: "user@example.com" };
-    // await request(app).post("/auth/register").send(user);
+    // await request(app).post("/api/v1/auth/register").send(user);
 
     const res = await request(app)
-      .get(`/users/activity`)
+      .get(`/api/v1/users/activity`)
       .set("Authorization", `Bearer ${adminToken}`);
     expect(res.status).toBe(200);
     expect(res.body.status).toBe("success");
@@ -113,10 +117,10 @@ describe("GET /users/activity", () => {
   });
 });
 
-describe("PATCH /users/:id", () => {
+describe("PATCH /api/v1/users/:id", () => {
   it("requires authentication", async () => {
     const res = await request(app)
-      .patch("/users/1")
+      .patch("/api/v1/users/1")
       .send({ first_name: "Updated" });
     expect(res.status).toBe(401);
   });
@@ -125,18 +129,18 @@ describe("PATCH /users/:id", () => {
     const adminToken = await createAdminAndGetToken();
 
     const targetUser = { ...userData, email: "target@example.com" };
-    await request(app).post("/auth/register").send(targetUser);
+    await request(app).post("/api/v1/auth/register").send(targetUser);
     const targetId = await getUserIdByEmail(adminToken, targetUser.email);
 
     const otherUser = { ...userData, email: "other@example.com" };
-    await request(app).post("/auth/register").send(otherUser);
+    await request(app).post("/api/v1/auth/register").send(otherUser);
     const otherLoginRes = await request(app)
-      .post("/auth/login")
+      .post("/api/v1/auth/login")
       .send({ email: otherUser.email, password: otherUser.password });
     const otherToken = otherLoginRes.body.data.token;
 
     const res = await request(app)
-      .patch(`/users/${targetId}`)
+      .patch(`/api/v1/users/${targetId}`)
       .set("Authorization", `Bearer ${otherToken}`)
       .send({ first_name: "Hacked" });
 
@@ -144,9 +148,9 @@ describe("PATCH /users/:id", () => {
   });
 
   it("allows owner to update their own profile", async () => {
-    await request(app).post("/auth/register").send(userData);
+    await request(app).post("/api/v1/auth/register").send(userData);
     const loginRes = await request(app)
-      .post("/auth/login")
+      .post("/api/v1/auth/login")
       .send({ email: userData.email, password: userData.password });
     const token = loginRes.body.data.token;
 
@@ -154,7 +158,7 @@ describe("PATCH /users/:id", () => {
     const userId = await getUserIdByEmail(adminToken, userData.email);
 
     const res = await request(app)
-      .patch(`/users/${userId}`)
+      .patch(`/api/v1/users/${userId}`)
       .set("Authorization", `Bearer ${token}`)
       .send({ first_name: "Updated", last_name: "Name" });
 
@@ -167,11 +171,11 @@ describe("PATCH /users/:id", () => {
   it("allows admin to update any user", async () => {
     const adminToken = await createAdminAndGetToken();
 
-    await request(app).post("/auth/register").send(userData);
+    await request(app).post("/api/v1/auth/register").send(userData);
     const userId = await getUserIdByEmail(adminToken, userData.email);
 
     const res = await request(app)
-      .patch(`/users/${userId}`)
+      .patch(`/api/v1/users/${userId}`)
       .set("Authorization", `Bearer ${adminToken}`)
       .send({ first_name: "AdminUpdated" });
 
@@ -183,11 +187,11 @@ describe("PATCH /users/:id", () => {
   it("rejects first_name shorter than 3 characters", async () => {
     const adminToken = await createAdminAndGetToken();
 
-    await request(app).post("/auth/register").send(userData);
+    await request(app).post("/api/v1/auth/register").send(userData);
     const userId = await getUserIdByEmail(adminToken, userData.email);
 
     const res = await request(app)
-      .patch(`/users/${userId}`)
+      .patch(`/api/v1/users/${userId}`)
       .set("Authorization", `Bearer ${adminToken}`)
       .send({ first_name: "ab" });
 
@@ -198,11 +202,11 @@ describe("PATCH /users/:id", () => {
   it("rejects last_name shorter than 3 characters", async () => {
     const adminToken = await createAdminAndGetToken();
 
-    await request(app).post("/auth/register").send(userData);
+    await request(app).post("/api/v1/auth/register").send(userData);
     const userId = await getUserIdByEmail(adminToken, userData.email);
 
     const res = await request(app)
-      .patch(`/users/${userId}`)
+      .patch(`/api/v1/users/${userId}`)
       .set("Authorization", `Bearer ${adminToken}`)
       .send({ last_name: "X" });
 
@@ -213,11 +217,11 @@ describe("PATCH /users/:id", () => {
   it("allows empty body when both fields are optional", async () => {
     const adminToken = await createAdminAndGetToken();
 
-    await request(app).post("/auth/register").send(userData);
+    await request(app).post("/api/v1/auth/register").send(userData);
     const userId = await getUserIdByEmail(adminToken, userData.email);
 
     const res = await request(app)
-      .patch(`/users/${userId}`)
+      .patch(`/api/v1/users/${userId}`)
       .set("Authorization", `Bearer ${adminToken}`)
       .send({});
 

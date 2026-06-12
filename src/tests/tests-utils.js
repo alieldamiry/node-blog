@@ -11,6 +11,7 @@ export const userData = {
   last_name: "User",
   password: "1234",
   passwordConfirm: "1234",
+  role: "user",
 };
 
 export const adminData = {
@@ -39,7 +40,7 @@ export async function createUserInDb({
 export async function createAdminAndGetToken() {
   await createUserInDb({ ...adminData, role: "admin" });
 
-  const loginRes = await request(app).post("/auth/login").send({
+  const loginRes = await request(app).post("/api/v1/auth/login").send({
     email: adminData.email,
     password: adminData.password,
   });
@@ -55,7 +56,7 @@ export async function createAdminAndGetToken() {
 
 export async function getUserIdByEmail(adminToken, email) {
   const res = await request(app)
-    .get("/users")
+    .get("/api/v1/users")
     .set("Authorization", `Bearer ${adminToken}`);
   const user = res.body.data.find((u) => u.email === email);
   if (!user) throw new Error(`User ${email} not found`);
