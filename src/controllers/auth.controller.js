@@ -4,6 +4,7 @@ import * as userModel from "../models/user.model.js";
 import * as authModel from "../models/auth.model.js";
 import { AppError } from "../utils/appError.js";
 import { catchAsync } from "../utils/catchAsync.js";
+import { emailQueue } from "../bullmq/queues/email-queue.js";
 
 export const register = catchAsync(async (req, res, next) => {
   const { email, first_name, last_name, password, passwordConfirm } = req.body;
@@ -21,6 +22,16 @@ export const register = catchAsync(async (req, res, next) => {
     password: hashedPassword,
     role: "user",
   });
+
+  await emailQueue.add("welcome", { email });
+  await emailQueue.add(
+    "follow-up",
+    {
+      email,
+      name: `${first_name} ${last_name}`,
+    },
+    { delay: 60 * 1000 },
+  );
 
   res.status(201).json({
     status: "success",
@@ -68,7 +79,7 @@ export const login = catchAsync(async (req, res, next) => {
 
 export const getMe = catchAsync(async (req, res, next) => {
   const { id } = req.user;
-  
+
   const userData = await userModel.getById(id);
 
   res.status(200).json({

@@ -2,6 +2,7 @@ import "dotenv/config";
 import { initDb } from "./config/db.js";
 import app from "./app.js";
 import { logger } from "./utils/logger.js";
+import "./bullmq/wokers/email-worker.js";
 
 const PORT = process.env.PORT;
 
