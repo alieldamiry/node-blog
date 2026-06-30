@@ -7,7 +7,7 @@ const connection = { host: "localhost", port: 6379 };
 const worker = new Worker(
   "email-queue",
   async (job) => {
-    logger.info({ job }, "execting email job ");
+    logger.info({ job }, "executing email job ");
     // console.log(`sending an email... Processing: ${job}`);
     if (job.name === "welcome") {
       await sendEmail({

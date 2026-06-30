@@ -1,5 +1,7 @@
 import * as commentModel from "../models/comment.model.js";
 import { catchAsync } from "../utils/catchAsync.js";
+import * as postModel from "../models/post.model.js";
+import { notificationQueue } from "../bullmq/queues/notifications-queue.js";
 
 export const getByPostId = catchAsync(async (req, res) => {
   const postId = req.query.post_id;
@@ -9,12 +11,21 @@ export const getByPostId = catchAsync(async (req, res) => {
 
 export const create = catchAsync(async (req, res) => {
   const { content, post_id } = req.body;
-  const userId = req.user.id;
+  const { id: user_id, name } = req.user;
   const comment = await commentModel.create({
-    user_id: userId,
+    user_id,
     post_id,
     content,
   });
+
+  // creating notification background job
+  const post = await postModel.getById(post_id);
+  notificationQueue.add("post_commented", {
+    postOwnerId: post.author_info.id,
+    commentedBy: name,
+    comment_id: comment.id,
+  });
+
   res.status(201).json({ status: "success", data: comment });
 });
 
