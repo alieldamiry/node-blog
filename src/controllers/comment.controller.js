@@ -23,7 +23,7 @@ export const create = catchAsync(async (req, res) => {
   notificationQueue.add("post_commented", {
     postOwnerId: post.author_info.id,
     commentedBy: name,
-    comment_id: comment.id,
+    post_id,
   });
 
   res.status(201).json({ status: "success", data: comment });

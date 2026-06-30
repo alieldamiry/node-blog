@@ -3,6 +3,8 @@ import cors from "cors";
 import usersRouter from "./routes/user.route.js";
 import postsRouter from "./routes/post.route.js";
 import commentRouter from "./routes/comment.route.js";
+import likeRouter from "./routes/like.route.js";
+import notificationRouter from "./routes/notification.route.js";
 import authRouter from "./routes/auth.route.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 import { AppError } from "./utils/appError.js";
@@ -25,6 +27,8 @@ if (process.env.NODE_ENV !== "test") {
 app.use("/api/v1/users", usersRouter);
 app.use("/api/v1/posts", postsRouter);
 app.use("/api/v1/comments", commentRouter);
+app.use("/api/v1/likes", likeRouter);
+app.use("/api/v1/notifications", notificationRouter);
 app.use("/api/v1/auth", /*authLimiter,*/ authRouter);
 
 app.use("/health", (req, res) => {

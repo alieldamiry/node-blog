@@ -8,10 +8,19 @@ const worker = new Worker(
   "notification-queue",
   async (job) => {
     logger.info({ job }, "executing notification job ");
-    if (job.name === "like") {
-      console.log("inserting like notification");
+    if (job.name === "post_liked") {
+      const { postOwnerId, likedByUsername } = job.data;
+
+      await pool.query(
+        `INSERT INTO notifications (user_id, type, message)
+         VALUES ($1, $2, $3)`,
+        [
+          postOwnerId,
+          "post_liked",
+          `${likedByUsername} liked on your post`,
+        ],
+      );
     } else if (job.name === "post_commented") {
-      console.log("inserting comment notification", job.data);
       const { postOwnerId, commentedBy } = job.data;
       await pool.query(
         `INSERT INTO notifications (user_id, type, message)
