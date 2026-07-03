@@ -1,4 +1,5 @@
 import { Queue, Worker } from "bullmq";
+import { logger } from "../utils/logger";
 
 const connection = { host: "localhost", port: 6379 };
 
@@ -19,10 +20,10 @@ for (let i = 1; i <= 5; i++) {
 const worker = new Worker(
   "test-queue",
   async (job) => {
-    console.log(`Processing: ${job.data.name}`);
+    logger.info(`Processing: ${job.data.name}`);
   },
   { connection },
 );
 
-worker.on("completed", (job) => console.log(`Done: ${job.id}`));
-worker.on("failed", (job, err) => console.error(`Failed: ${job.id}`, err));
+worker.on("completed", (job) => logger.info(`Done: ${job.id}`));
+worker.on("failed", (job, err) => logger.error({ err: err.message }, `Failed: ${job.id}`));

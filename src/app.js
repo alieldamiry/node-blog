@@ -6,6 +6,7 @@ import commentRouter from "./routes/comment.route.js";
 import likeRouter from "./routes/like.route.js";
 import notificationRouter from "./routes/notification.route.js";
 import authRouter from "./routes/auth.route.js";
+import adminRouter from "./routes/admin.route.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 import { AppError } from "./utils/appError.js";
 import { pinoHttp } from "pino-http";
@@ -30,6 +31,8 @@ app.use("/api/v1/comments", commentRouter);
 app.use("/api/v1/likes", likeRouter);
 app.use("/api/v1/notifications", notificationRouter);
 app.use("/api/v1/auth", /*authLimiter,*/ authRouter);
+app.use("/api/v1/admin", adminRouter);
+
 
 app.use("/health", (req, res) => {
   res.status(200).send("OK");

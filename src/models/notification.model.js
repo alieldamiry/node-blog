@@ -14,3 +14,14 @@ export const getAllByUserId = async (user_id) => {
 
   return result.rows;
 };
+
+export const toggleNotificationRead = async (user_id, notificationId) => {
+  await pool.query(
+    `
+        update notifications
+        set read = not read
+        where user_id=$1 and id=$2
+        `,
+    [user_id, notificationId],
+  );
+}

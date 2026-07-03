@@ -12,7 +12,7 @@ export const emailQueue = new Queue("email-queue", {
     },
     removeOnComplete: 5,
     removeOnFail: 5,
-    // removeOnComplete: 100,
-    // removeOnFail: 50,
+    removeOnComplete: 100,
+    removeOnFail: 50,
   },
 });

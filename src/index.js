@@ -4,6 +4,8 @@ import app from "./app.js";
 import { logger } from "./utils/logger.js";
 import "./bullmq/wokers/email-worker.js";
 import "./bullmq/wokers/notifications-worker.js";
+import "./bullmq/wokers/cleanup-worker.js";
+import "./cleanup.js";
 
 const PORT = process.env.PORT;
 

@@ -7,4 +7,11 @@ router
   .route("/")
   .get(authController.protect, notificationController.getAllByUserId);
 
+router
+  .route("/:notificationId/read")
+  .patch(
+    authController.protect,
+    notificationController.toggleNotificationRead,
+  );
+
 export default router;

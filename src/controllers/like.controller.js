@@ -5,7 +5,6 @@ import { notificationQueue } from "../bullmq/queues/notifications-queue.js";
 
 export const create = catchAsync(async (req, res) => {
   const { id: user_id, name } = req.user;
-  console.log("req.body:", req.body);
   const { post_id } = req.body;
   const like = await likeModel.create(user_id, post_id);
 
