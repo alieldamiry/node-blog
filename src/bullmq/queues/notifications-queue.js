@@ -1,9 +1,8 @@
 import { Queue } from "bullmq";
-
-const connection = { host: "localhost", port: 6379 };
+import { redisOptions } from "../../config/redis.js";
 
 export const notificationQueue = new Queue("notification-queue", {
-  connection,
+  connection: redisOptions,
   defaultJobOptions: {
     attempts: 3,
     backoff: {

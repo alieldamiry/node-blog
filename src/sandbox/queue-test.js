@@ -1,10 +1,9 @@
 import { Queue, Worker } from "bullmq";
 import { logger } from "../utils/logger";
-
-const connection = { host: "localhost", port: 6379 };
+import { redisConnection } from "../config/redis.js";
 
 const myQueue = new Queue("test-queue", {
-  connection,
+  connection: redisConnection,
   defaultJobOptions: {
     removeOnComplete: 100,
     removeOnFail: 50,
@@ -22,7 +21,7 @@ const worker = new Worker(
   async (job) => {
     logger.info(`Processing: ${job.data.name}`);
   },
-  { connection },
+  { connection: redisConnection },
 );
 
 worker.on("completed", (job) => logger.info(`Done: ${job.id}`));

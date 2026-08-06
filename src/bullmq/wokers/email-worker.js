@@ -1,8 +1,7 @@
 import { Worker } from "bullmq";
 import { logger } from "../../utils/logger.js";
 import { sendEmail } from "../../utils/email.js";
-
-const connection = { host: "localhost", port: 6379 };
+import { workerConnection } from "../../config/redis.js";
 
 const worker = new Worker(
   "email-queue",
@@ -29,7 +28,7 @@ const worker = new Worker(
 
     return { sent: true };
   },
-  { connection },
+  { connection: workerConnection },
 );
 
 // Progress tracking logs

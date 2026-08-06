@@ -1,8 +1,7 @@
 import { Worker } from "bullmq";
 import { logger } from "../../utils/logger.js";
 import { pool } from "../../config/db.js";
-
-const connection = { host: "localhost", port: 6379 };
+import { workerConnection } from "../../config/redis.js";
 
 const worker = new Worker(
   "notification-queue",
@@ -33,7 +32,7 @@ const worker = new Worker(
       );
     }
   },
-  { connection },
+  { connection: workerConnection },
 );
 
 worker.on("completed", (job) =>
