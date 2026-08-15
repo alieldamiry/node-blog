@@ -4,7 +4,10 @@
   "main": "index.js",
   "scripts": {
     "dev": "node --watch src/index.js",
-    "test": "dotenv -e .env.test -- vitest run"
+    "test": "dotenv -e .env.test -- vitest run",
+    "migrate:up": "node-pg-migrate up",
+    "migrate:down": "node-pg-migrate down",
+    "migrate:create": "node-pg-migrate create"
   },
   "author": "",
   "license": "ISC",
@@ -23,8 +26,9 @@
     "ioredis": "^5.11.0",
     "jsonwebtoken": "^9.0.3",
     "multer": "^2.1.1",
+    "node-pg-migrate": "^9.0.0",
     "nodemailer": "^8.0.11",
-    "pg": "^8.20.0",
+    "pg": "^8.23.0",
     "pino": "^10.3.1",
     "pino-http": "^11.0.0",
     "rate-limit-redis": "^5.0.0",
